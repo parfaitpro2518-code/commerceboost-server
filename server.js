@@ -30,27 +30,78 @@ app.get("/debug/ai", async (req, res) => {
 // Health check
 app.get("/health", (req, res) => res.send("✅ Server alive"));
 
+// ==================================================
+// 🌙 GESTION DU MODE VEILLE / ACTIVITÉ DU BOT
+// ==================================================
+let botStatus = "awake";
+let pingCount = 0;
+let startCount = 0;
+let shutdownCount = 0;
+
+// ✅ Route Health Check (Render utilise ça pour vérifier que le serveur est vivant)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Serveur CommerceBoost opérationnel 🚀",
+    port: process.env.PORT || DEFAULT_PORT,
+  });
+});
+
+// ✅ Route Ping (utilisée par cron-job.org)
+app.get("/ping", (req, res) => {
+  pingCount++;
+  console.log(`🟡 Ping reçu (${pingCount}) - ${new Date().toISOString()}`);
+  res.json({
+    status: "ok",
+    pingCount,
+    botStatus,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ✅ Route Start (réveiller le bot manuellement)
+app.get("/start", (req, res) => {
+  botStatus = "awake";
+  startCount++;
+  console.log(`🟢 Bot réveillé (${startCount})`);
+  res.json({
+    status: "awake",
+    message: "Le bot CommerceBoost est en ligne 🚀",
+    startCount,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ✅ Route Shutdown (mettre le bot en veille manuellement)
+app.get("/shutdown", (req, res) => {
+  botStatus = "asleep";
+  shutdownCount++;
+  console.log(`🔴 Bot mis en veille (${shutdownCount})`);
+  res.json({
+    status: "asleep",
+    message: "Le bot CommerceBoost est en veille 😴",
+    shutdownCount,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ==================================================
+// 🔁 Rappel auto (ping toutes les 10 min pour Render gratuit)
+// ==================================================
+setInterval(() => {
+  if (botStatus === "awake") {
+    console.log(`🔁 Auto-ping interne pour garder Render éveillé`);
+  }
+}, 10 * 60 * 1000); // toutes les 10 minutes
+
 // Serveur dynamique
-const DEFAULT_PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000;
 
-function startServer(port) {
-  const server = app.listen(port, () => {
-    console.log("==================================================");
-    console.log("🚀 COMMERCEBOOST BOT DÉMARRÉ");
-    console.log(`📍 Port: ${port}`);
-    console.log(`🌐 Webhook: ${process.env.PUBLIC_URL || "https://commerceboost-server.onrender.com"}/webhook`);
-    console.log(`💚 Health: ${process.env.PUBLIC_URL || "https://commerceboost-server.onrender.com"}/health`);
-    console.log("==================================================");
-  });
-
-  server.on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-      console.warn(`⚠️ Le port ${port} est déjà utilisé, on essaie le suivant...`);
-      startServer(port + 1);
-    } else {
-      console.error("❌ Erreur serveur:", err);
-    }
-  });
-}
-
-startServer(Number(DEFAULT_PORT));
+app.listen(PORT, () => {
+  console.log("==================================================");
+  console.log("🚀 COMMERCEBOOST BOT DÉMARRÉ");
+  console.log(`📍 Port: ${PORT}`);
+  console.log(`🌐 Webhook: https://commerceboost-server.onrender.com/webhook`);
+  console.log(`💚 Health: https://commerceboost-server.onrender.com/health`);
+  console.log("==================================================");
+});
