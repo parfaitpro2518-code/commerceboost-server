@@ -1,0 +1,18 @@
+[
+  {
+    "titre": "Photos produits de qualité",
+    "categorie": "Boutique",
+    "solution": "Photo nette, fond neutre, plusieurs angles",
+    "action_concrete": "Aujourd'hui : prendre 3 photos par produit avec fond blanc",
+    "resultat_attendu": "Ventes +30%",
+    "exemple_local": "Vendeuse Lomé : avant 2 ventes/semaine, après 8 ventes/semaine"
+  },
+  {
+    "titre": "Publier au bon moment",
+    "categorie": "E-Commerce",
+    "solution": "Publier posts quand votre audience est active",
+    "action_concrete": "Tester horaires 18h-19h pendant une semaine",
+    "resultat_attendu": "Engagement +50%",
+    "exemple_local": "Boutique Instagram Lomé : likes +100%"
+  }
+]
