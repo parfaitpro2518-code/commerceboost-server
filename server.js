@@ -94,6 +94,38 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000); // toutes les 10 minutes
 
+// ===== ROUTE DE STATUT DU BOT =====
+let lastPing = null;
+let lastStart = null;
+let lastShutdown = null;
+
+app.get("/ping", (req, res) => {
+  lastPing = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  res.json({ status: "✅ Serveur actif", lastPing });
+});
+
+app.get("/start", (req, res) => {
+  lastStart = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  res.json({ message: "🚀 Bot réveillé avec succès", lastStart });
+});
+
+app.get("/shutdown", (req, res) => {
+  lastShutdown = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  res.json({ message: "😴 Bot mis en veille", lastShutdown });
+});
+
+app.get("/status", (req, res) => {
+  res.json({
+    bot: "🤖 CommerceBoost",
+    status: "✅ En ligne",
+    lastPing,
+    lastStart,
+    lastShutdown,
+    serverTime: new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" })
+  });
+});
+
+
 // Serveur dynamique
 const PORT = process.env.PORT || 10000;
 
