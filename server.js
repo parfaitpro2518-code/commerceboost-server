@@ -11,7 +11,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // ==================================================
-// 📦 Chargement du statut persistant
+// 📦 STATUT PERSISTANT
 // ==================================================
 const statusFile = path.join(process.cwd(), "data", "status.json");
 
@@ -28,7 +28,7 @@ function readStatus() {
       shutdownCount: 0,
       lastPing: null,
       lastStart: null,
-      lastShutdown: null,
+      lastShutdown: null
     };
   }
 }
@@ -44,6 +44,17 @@ function saveStatus(status) {
 let status = readStatus();
 
 // ==================================================
+// 🔐 MIDDLEWARE ADMIN (pour sécuriser /reset et /shutdown)
+// ==================================================
+const ADMIN_KEY = process.env.ADMIN_KEY || "commerceboost_admin";
+
+function requireAdmin(req, res, next) {
+  const key = req.query.key || req.headers["x-admin-key"];
+  if (key === ADMIN_KEY) return next();
+  return res.status(403).json({ error: "Accès refusé : clé admin manquante ou invalide" });
+}
+
+// ==================================================
 // 🧩 Connexion MongoDB
 // ==================================================
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -51,7 +62,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .catch(err => console.error("❌ MongoDB erreur:", err));
 
 // ==================================================
-// 🧠 Debug IA
+// 🧠 DEBUG IA
 // ==================================================
 app.get("/debug/ai", async (req, res) => {
   const user = {
@@ -66,10 +77,26 @@ app.get("/debug/ai", async (req, res) => {
 });
 
 // ==================================================
-// 🌙 GESTION DU MODE VEILLE / ACTIVITÉ DU BOT
+// 🌙 GESTION DU MODE VEILLE / ACTIVITÉ
 // ==================================================
 
-// ✅ Health
+// Page d'accueil
+app.get("/", (req, res) => {
+  res.send(`
+    <h1>🤖 CommerceBoost Bot Server</h1>
+    <p>Bienvenue sur le backend de CommerceBoost 🚀</p>
+    <ul>
+      <li>💚 <a href="/health">/health</a> — Vérifie l’état du serveur</li>
+      <li>📡 <a href="/ping">/ping</a> — Garde Render éveillé</li>
+      <li>🌞 <a href="/start">/start</a> — Réveiller le bot</li>
+      <li>🌙 <a href="/shutdown">/shutdown</a> — Mettre en veille (clé admin requise)</li>
+      <li>📊 <a href="/status">/status</a> — Voir les stats actuelles</li>
+      <li>♻️ <a href="/reset?key=ADMIN_KEY">/reset</a> — Réinitialiser les compteurs (admin)</li>
+    </ul>
+  `);
+});
+
+// Health check
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -78,7 +105,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ✅ Ping
+// Ping
 app.get("/ping", (req, res) => {
   status.pingCount++;
   status.lastPing = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
@@ -87,7 +114,7 @@ app.get("/ping", (req, res) => {
   res.json({ status: "ok", botStatus: status.botStatus, ...status });
 });
 
-// ✅ Start
+// Start
 app.get("/start", (req, res) => {
   status.botStatus = "awake";
   status.startCount++;
@@ -97,8 +124,8 @@ app.get("/start", (req, res) => {
   res.json({ message: "🚀 Bot réveillé", ...status });
 });
 
-// ✅ Shutdown
-app.get("/shutdown", (req, res) => {
+// Shutdown (admin)
+app.get("/shutdown", requireAdmin, (req, res) => {
   status.botStatus = "asleep";
   status.shutdownCount++;
   status.lastShutdown = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
@@ -107,7 +134,7 @@ app.get("/shutdown", (req, res) => {
   res.json({ message: "😴 Bot mis en veille", ...status });
 });
 
-// ✅ Status général
+// Status global
 app.get("/status", (req, res) => {
   res.json({
     bot: "🤖 CommerceBoost",
@@ -117,7 +144,25 @@ app.get("/status", (req, res) => {
   });
 });
 
-// 🔁 Auto-ping interne
+// Reset du statut (admin)
+app.get("/reset", requireAdmin, (req, res) => {
+  status = {
+    botStatus: "awake",
+    pingCount: 0,
+    startCount: 0,
+    shutdownCount: 0,
+    lastPing: null,
+    lastStart: null,
+    lastShutdown: null
+  };
+  saveStatus(status);
+  console.log("♻️ Statut du bot réinitialisé");
+  res.json({ message: "♻️ Statut réinitialisé avec succès", status });
+});
+
+// ==================================================
+// 🔁 Auto-ping interne Render gratuit
+// ==================================================
 setInterval(() => {
   if (status.botStatus === "awake") {
     console.log(`🔁 Auto-ping interne (${new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" })})`);
@@ -125,7 +170,7 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // ==================================================
-// 🚀 Démarrage Serveur
+// 🚀 LANCEMENT DU SERVEUR
 // ==================================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
