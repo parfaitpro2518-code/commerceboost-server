@@ -170,6 +170,66 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // ==================================================
+// 🌐 Interface Web d’administration simple
+// ==================================================
+app.get("/admin", (req, res) => {
+  const html = `
+  <html>
+    <head>
+      <title>Admin CommerceBoost</title>
+      <meta charset="utf-8" />
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f5f5f5;
+          padding: 40px;
+          text-align: center;
+        }
+        h1 { color: #333; }
+        button {
+          margin: 10px;
+          padding: 15px 25px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 16px;
+          color: white;
+        }
+        .start { background-color: #28a745; }
+        .shutdown { background-color: #dc3545; }
+        .reset { background-color: #007bff; }
+        #result {
+          margin-top: 20px;
+          font-weight: bold;
+          color: #333;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>🧠 Admin Panel - CommerceBoost</h1>
+      <p>Gérez votre bot facilement :</p>
+
+      <button class="start" onclick="callAPI('/start')">🚀 Démarrer</button>
+      <button class="shutdown" onclick="callAPI('/shutdown')">😴 Mettre en veille</button>
+      <button class="reset" onclick="callAPI('/reset')">♻️ Réinitialiser</button>
+
+      <div id="result"></div>
+
+      <script>
+        const adminKey = "${process.env.ADMIN_KEY}";
+        async function callAPI(endpoint) {
+          const res = await fetch(\`\${endpoint}?key=\${adminKey}\`);
+          const data = await res.json();
+          document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+        }
+      </script>
+    </body>
+  </html>`;
+  res.send(html);
+});
+
+
+// ==================================================
 // 🚀 LANCEMENT DU SERVEUR
 // ==================================================
 const PORT = process.env.PORT || 10000;
