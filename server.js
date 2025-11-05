@@ -2,18 +2,57 @@ import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 import { buildPrompt, getAIResponse } from "./controllers/ai.js";
-dotenv.config();
 
+dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
-// MongoDB
+// ==================================================
+// 📦 Chargement du statut persistant
+// ==================================================
+const statusFile = path.join(process.cwd(), "data", "status.json");
+
+function readStatus() {
+  try {
+    const data = fs.readFileSync(statusFile, "utf-8");
+    return JSON.parse(data);
+  } catch (err) {
+    console.error("⚠️ Impossible de lire le fichier status.json, initialisation par défaut.");
+    return {
+      botStatus: "awake",
+      pingCount: 0,
+      startCount: 0,
+      shutdownCount: 0,
+      lastPing: null,
+      lastStart: null,
+      lastShutdown: null,
+    };
+  }
+}
+
+function saveStatus(status) {
+  try {
+    fs.writeFileSync(statusFile, JSON.stringify(status, null, 2));
+  } catch (err) {
+    console.error("❌ Erreur lors de la sauvegarde du statut :", err);
+  }
+}
+
+let status = readStatus();
+
+// ==================================================
+// 🧩 Connexion MongoDB
+// ==================================================
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB connecté"))
   .catch(err => console.error("❌ MongoDB erreur:", err));
 
-// Debug route IA
+// ==================================================
+// 🧠 Debug IA
+// ==================================================
 app.get("/debug/ai", async (req, res) => {
   const user = {
     businessType: "Boutique de vêtements",
@@ -22,118 +61,77 @@ app.get("/debug/ai", async (req, res) => {
   };
   const question = req.query.q || "Comment attirer plus de clients ?";
   const prompt = buildPrompt(user, question);
-
   const aiResponse = await getAIResponse(prompt);
   res.type("text/plain").send(aiResponse);
 });
 
-// Health check
-app.get("/health", (req, res) => res.send("✅ Server alive"));
-
 // ==================================================
 // 🌙 GESTION DU MODE VEILLE / ACTIVITÉ DU BOT
 // ==================================================
-let botStatus = "awake";
-let pingCount = 0;
-let startCount = 0;
-let shutdownCount = 0;
 
-// ✅ Route Health Check (Render utilise ça pour vérifier que le serveur est vivant)
+// ✅ Health
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     message: "Serveur CommerceBoost opérationnel 🚀",
-    port: process.env.PORT || DEFAULT_PORT,
+    port: process.env.PORT || 10000,
   });
 });
 
-// ✅ Route Ping (utilisée par cron-job.org)
+// ✅ Ping
 app.get("/ping", (req, res) => {
-  pingCount++;
-  console.log(`🟡 Ping reçu (${pingCount}) - ${new Date().toISOString()}`);
-  res.json({
-    status: "ok",
-    pingCount,
-    botStatus,
-    timestamp: new Date().toISOString(),
-  });
+  status.pingCount++;
+  status.lastPing = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  saveStatus(status);
+  console.log(`🟡 Ping reçu (${status.pingCount}) - ${status.lastPing}`);
+  res.json({ status: "ok", botStatus: status.botStatus, ...status });
 });
 
-// ✅ Route Start (réveiller le bot manuellement)
+// ✅ Start
 app.get("/start", (req, res) => {
-  botStatus = "awake";
-  startCount++;
-  console.log(`🟢 Bot réveillé (${startCount})`);
-  res.json({
-    status: "awake",
-    message: "Le bot CommerceBoost est en ligne 🚀",
-    startCount,
-    timestamp: new Date().toISOString(),
-  });
+  status.botStatus = "awake";
+  status.startCount++;
+  status.lastStart = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  saveStatus(status);
+  console.log(`🟢 Bot réveillé (${status.startCount}) - ${status.lastStart}`);
+  res.json({ message: "🚀 Bot réveillé", ...status });
 });
 
-// ✅ Route Shutdown (mettre le bot en veille manuellement)
+// ✅ Shutdown
 app.get("/shutdown", (req, res) => {
-  botStatus = "asleep";
-  shutdownCount++;
-  console.log(`🔴 Bot mis en veille (${shutdownCount})`);
-  res.json({
-    status: "asleep",
-    message: "Le bot CommerceBoost est en veille 😴",
-    shutdownCount,
-    timestamp: new Date().toISOString(),
-  });
+  status.botStatus = "asleep";
+  status.shutdownCount++;
+  status.lastShutdown = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
+  saveStatus(status);
+  console.log(`🔴 Bot mis en veille (${status.shutdownCount}) - ${status.lastShutdown}`);
+  res.json({ message: "😴 Bot mis en veille", ...status });
 });
 
-// ==================================================
-// 🔁 Rappel auto (ping toutes les 10 min pour Render gratuit)
-// ==================================================
-setInterval(() => {
-  if (botStatus === "awake") {
-    console.log(`🔁 Auto-ping interne pour garder Render éveillé`);
-  }
-}, 10 * 60 * 1000); // toutes les 10 minutes
-
-// ===== ROUTE DE STATUT DU BOT =====
-let lastPing = null;
-let lastStart = null;
-let lastShutdown = null;
-
-app.get("/ping", (req, res) => {
-  lastPing = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
-  res.json({ status: "✅ Serveur actif", lastPing });
-});
-
-app.get("/start", (req, res) => {
-  lastStart = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
-  res.json({ message: "🚀 Bot réveillé avec succès", lastStart });
-});
-
-app.get("/shutdown", (req, res) => {
-  lastShutdown = new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" });
-  res.json({ message: "😴 Bot mis en veille", lastShutdown });
-});
-
+// ✅ Status général
 app.get("/status", (req, res) => {
   res.json({
     bot: "🤖 CommerceBoost",
-    status: "✅ En ligne",
-    lastPing,
-    lastStart,
-    lastShutdown,
+    status: status.botStatus === "awake" ? "✅ En ligne" : "😴 En veille",
+    ...status,
     serverTime: new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" })
   });
 });
 
+// 🔁 Auto-ping interne
+setInterval(() => {
+  if (status.botStatus === "awake") {
+    console.log(`🔁 Auto-ping interne (${new Date().toLocaleString("fr-FR", { timeZone: "Africa/Lome" })})`);
+  }
+}, 10 * 60 * 1000);
 
-// Serveur dynamique
+// ==================================================
+// 🚀 Démarrage Serveur
+// ==================================================
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => {
   console.log("==================================================");
   console.log("🚀 COMMERCEBOOST BOT DÉMARRÉ");
   console.log(`📍 Port: ${PORT}`);
-  console.log(`🌐 Webhook: https://commerceboost-server.onrender.com/webhook`);
   console.log(`💚 Health: https://commerceboost-server.onrender.com/health`);
   console.log("==================================================");
 });

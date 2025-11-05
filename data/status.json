@@ -1,0 +1,9 @@
+{
+  "botStatus": "awake",
+  "pingCount": 0,
+  "startCount": 0,
+  "shutdownCount": 0,
+  "lastPing": null,
+  "lastStart": null,
+  "lastShutdown": null
+}
