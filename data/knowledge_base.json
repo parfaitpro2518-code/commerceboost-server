@@ -1,0 +1,83 @@
+{
+  "conseils_quotidiens": {
+    "vetements": [
+      {
+        "id": "VET_001",
+        "titre": "Organisation vitrine",
+        "contenu": "Place tes nouveaux produits bien en vue en entrée de boutique. Les clients les voient en premier et achètent 30% plus!",
+        "action": "Prends 3 nouveaux articles et mets-les devant ta boutique ce matin.",
+        "duree": "10 minutes",
+        "niveau": "debutant"
+      },
+      {
+        "id": "VET_002", 
+        "titre": "Rotation saisonnière",
+        "contenu": "Adapte ton stock à la saison. En saison chaude, mets en avant les vêtements légers et clairs.",
+        "action": "Fais un tri de tes articles lourds et propose-les en promotion.",
+        "duree": "1 heure",
+        "niveau": "intermediaire"
+      }
+    ],
+    "restaurant": [
+      {
+        "id": "RES_001",
+        "titre": "Menu du jour attractif",
+        "contenu": "Un menu du jour bien présenté attire 40% plus de clients. Utilise des noms appétissants!",
+        "action": "Crée un menu spécial avec 2-3 plats du jour et annonce-le sur WhatsApp.",
+        "duree": "20 minutes",
+        "niveau": "debutant"
+      }
+    ]
+  },
+
+  "motivations": [
+    {
+      "id": "MOT_001",
+      "categorie": "debut",
+      "contenu": "Chaque grand commerce a commencé petit comme toi. La régularité est la clé! 💪",
+      "auteur": "Proverbe commerçant"
+    },
+    {
+      "id": "MOT_002", 
+      "categorie": "difficulte",
+      "contenu": "Les jours difficiles forgent les commerçants exceptionnels. Continue! 🌟",
+      "auteur": "Sagesse togolaise"
+    }
+  ],
+
+  "histoires_inspirantes": [
+    {
+      "id": "HIS_001",
+      "titre": "De la rue au succès",
+      "personnage": "Amina - Vendeuse de jus",
+      "histoire": "Amina a commencé avec un seul seau de jus. Aujourd'hui, elle a 3 points de vente fixes à Lomé.",
+      "secret": "Qualité constante et service toujours souriant",
+      "lecon": "La persévérance et la qualité paient toujours",
+      "duree": "2 ans"
+    },
+    {
+      "id": "HIS_002",
+      "titre": "L'innovation payante", 
+      "personnage": "Koffi - Réparateur téléphones",
+      "histoire": "Koffi a transformé son petit étal en atelier avec 2 employés grâce à sa garantie écrite de 3 mois.",
+      "secret": "Confiance construite par des garanties solides",
+      "lecon": "La différenciation crée la valeur",
+      "duree": "18 mois"
+    }
+  ],
+
+  "promotions_templates": {
+    "flash": [
+      "🎯 OFFRE FLASH : [Produit] à -XX% aujourd'hui seulement!",
+      "⚡ PROMO EXPRESS : [Bénéfice] valable 24h!"
+    ],
+    "saisonnier": [
+      "🌞 [Saison] : [Offre spéciale] pour la période",
+      "🎄 [Événement] : [Promo adaptée] pour célébrer"
+    ],
+    "fidelisation": [
+      "❤️ MERCI : Offre exclusive pour nos fidèles clients",
+      "🎁 CADEAU : [Cadeau] offert pour tout achat de [Montant]"
+    ]
+  }
+}
