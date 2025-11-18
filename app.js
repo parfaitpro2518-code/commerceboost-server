@@ -1,4 +1,4 @@
-// app.js - VERSION CORRIGÉE
+// app.js - VERSION COMPLÈTEMENT CORRIGÉE
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -8,6 +8,9 @@ import cors from 'cors';
 import messengerRoutes from './routes/messenger.js';
 import adminRoutes from './routes/admin.js';
 import paymentRoutes from './routes/payment.js';
+
+// ⭐⭐ DÉFINIR PORT AU DÉBUT - TRÈS IMPORTANT ⭐⭐
+const PORT = process.env.PORT || 10000;
 
 // Charge les variables d'environnement
 dotenv.config();
@@ -57,19 +60,14 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
 
+// ⭐⭐ UN SEUL app.listen() À LA FIN ⭐⭐
 app.listen(PORT, () => {
   console.log(`🚀 CommerceBoost démarré sur le port ${PORT}`);
+  console.log(`📱 Health check: http://localhost:${PORT}/health`);
+  console.log(`🏠 Accueil: http://localhost:${PORT}/`);
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.log(`❌ Le port ${PORT} est déjà utilisé!`);
     console.log(`💡 Change le PORT dans ton .env ou tue le processus existant`);
   }
-});
-
-// Démarrage du serveur
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 CommerceBoost démarré sur le port ${PORT}`);
-  console.log(`📱 Health check: http://localhost:${PORT}/health`);
-  console.log(`🏠 Accueil: http://localhost:${PORT}/`);
 });
