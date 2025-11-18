@@ -21,9 +21,13 @@ function checkRateLimit(userId) {
   return userLimit.count <= 15; // 15 messages/minute
 }
 
-// 🔹 GESTION WEBHOOK
+// 🔹 GESTION WEBHOOK POST
 export const handleWebhookPost = async (req, res) => {
+  console.log("📨 Webhook Facebook reçu:", req.body);
+  
+  // ⭐⭐ TOUJOURS RÉPONDRE IMMÉDIATEMENT À FACEBOOK ⭐⭐
   res.status(200).send("EVENT_RECEIVED");
+  
   if (req.body.object !== "page") return;
 
   // ⏰ OPTIMISATION RENDER
@@ -112,14 +116,22 @@ setInterval(() => {
   }
 }, 60000);
 
+// ⭐⭐ FONCTION DE VÉRIFICATION WEBHOOK - BIEN EXPORTÉE ⭐⭐
 export const verifyWebhook = (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
+  console.log("🔍 Facebook webhook verification:");
+  console.log("Mode:", mode);
+  console.log("Token reçu:", token);
+  console.log("Token attendu:", process.env.FACEBOOK_VERIFY_TOKEN);
+
   if (mode === "subscribe" && token === process.env.FACEBOOK_VERIFY_TOKEN) {
-    console.log("✅ Webhook vérifié!");
+    console.log("✅ Webhook Facebook VÉRIFIÉ!");
     return res.status(200).send(challenge);
   }
+  
+  console.log("❌ Échec vérification webhook");
   return res.sendStatus(403);
 };
