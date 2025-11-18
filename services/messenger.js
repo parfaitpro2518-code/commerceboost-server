@@ -33,10 +33,10 @@ export const handleWebhookPost = async (req, res) => {
   // ⏰ OPTIMISATION RENDER
   if (process.env.NODE_ENV === 'production') {
     const hour = new Date().getHours();
-    if (hour < 0 || hour > 5) {
-      console.log(`⏰ Économie CPU - Hors plage 00h-05h`);
-      return;
-    }
+    if (hour >= 0 && hour < 5) {
+  console.log(`⏰ Économie CPU - Bot en sommeil de 00h à 5h`);
+  return;
+}
   }
 
   for (const entry of req.body.entry) {
